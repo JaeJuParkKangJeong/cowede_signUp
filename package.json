@@ -1,0 +1,32 @@
+{
+  "name": "websocket",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "dev": "nodemon"
+  },
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "mongoose-auto-increment": "^5.0.1",
+    "morgan": "~1.9.1",
+    "socket.io": "^3.1.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.18.10",
+    "@babel/core": "^7.18.10",
+    "@babel/node": "^7.18.10",
+    "@babel/preset-env": "^7.18.10",
+    "body-parser": "^1.20.0",
+    "ejs": "^3.1.8",
+    "mongoose": "^6.5.3",
+    "nodemon": "^2.0.19"
+  },
+  "main": "server.js",
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

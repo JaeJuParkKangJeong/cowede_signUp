@@ -1,0 +1,52 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  /* margin: 0; */
+}
+
+body {
+  padding: 24px 48px;
+  /* font: 14px "Lucida Grande", Helvetica, Arial, sans-serif; */
+}
+
+a {
+  color: #00b7ff;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+h2 {
+  font-size: 20px;
+}
+
+div {
+  font-size: 14px;
+}
+
+.hidden {
+  display: none;
+}
+
+.ques-ide {
+  display: flex;
+  flex-direction: row;
+}
+
+.question {
+  display: flex;
+  flex: auto;
+  width: 0.5rem;
+}
+
+.ide {
+  display: flex;
+  flex-direction: column;
+  flex: auto;
+}
+
+.call-chat-result {
+  display: flex;
+  flex-direction: row;
+}
