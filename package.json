@@ -28,5 +28,13 @@
   "main": "server.js",
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "회원가입, 유저 DB 모델링 /**  sever.js -> 57~165 line 추가 model/userModel.js 추가",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JaeJuParkKangJeong/cowede_signUp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JaeJuParkKangJeong/cowede_signUp/issues"
+  },
+  "homepage": "https://github.com/JaeJuParkKangJeong/cowede_signUp#readme"
 }

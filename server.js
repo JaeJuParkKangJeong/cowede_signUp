@@ -126,7 +126,7 @@ app.post('/join',
 
             }
             });
-        
+      
         new_user.user_correct_ques = [0];    //new_user.user_correct_ques[1~] --> index 1부터 맞춘문제 저장됨 
         
         //pw암호화 
