@@ -82,5 +82,28 @@ users.save(function(err){
 });
 });
 
+
+//front에서 입력받은 pw를 암호화하여, users Collection에 암호화되어 저장된 user_pw와
+//비교하여 일치여부 판단하는 함수 작성 
+
+//암호화 모듈 사용
+const bcrypt = require('bcrypt');
+
+//comparePassword 메소드 작성 (this -> userSchema)
+//이거 오버라이딩?? 이거뭐지?
+//comparePassword method를 만드는데 오ㅔ js는 함수를 이딴식으로 만드는걸까?
+//일단의 userSchema라는 class의 method로 comparePassword함수를 만든다 생각하자
+userSchema.methods.comparePassword = (plainPassword, encryptPw, cb) => {
+    //plainPassword: 로그인 하기위해 새로 입력한 비번
+    //this.user_pw: 암호화 된 비번 -> 이건 defaut para인가?
+    bcrypt.compare(plainPassword, encryptPw, (err, isMatch) =>{
+        if(err) return cb(err)  //그냥 애러
+        cb(null, isMatch);      //isMatch가 false이면 에러메세지 출력~
+    });
+}
+
+
+
+
 //users라는 이름의 coolection생성
 module.exports = mongoose.model("users", userSchema);
