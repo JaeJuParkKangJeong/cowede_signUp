@@ -1,4 +1,4 @@
-//login branch 샹성 test
+//login branch 생성 test
 //npm install debug cookie-parser express morgan socket.io body-parser ejs mongoose nodemon bcrypt
 //npm install --legacy-peer-deps mongoose-auto-increment
 
@@ -20,21 +20,22 @@ const Questions = require("./models/questionsModel");
 const { resolve } = require("path");
 
 //DB
-mongoose.connect(
-  dbUrl,
-  {
-    dbName: "pairPrograming_new_edit_2",
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  },
-  (err) => {
-    if (err) {
-      return console.log(err);
-    } else {
-      console.log("DB/ODM is connected");
-    }
-  }
-);
+const db = 
+    mongoose.connect(
+        dbUrl,
+        {
+          dbName: "pairPrograming_new_edit_2",
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+        },
+        (err) => {
+          if (err) {
+            return console.log(err);
+          } else {
+            console.log("DB/ODM is connected");
+          }
+        }
+      );
 
 //app.use(logger("dev")); // 받는 Request 로그 찍어준다.
 app.use(express.json()); // JSON 형태의 request body 받았을 경우 파싱
@@ -86,11 +87,16 @@ app.post('/join',
     const input_email = req.body.email;
     const input_nickname = req.body.nickname;
 
-    //이메일, 닉네임 중복확인, 패스워드같은지 확인 -> 계정생성
+    //아이디 ,이메일, 닉네임 중복확인, 패스워드같은지 확인 -> 계정생성
     try{
+        const check_id = await Users.findOne({user_id: input_id});
         const check_email = await Users.findOne({user_email: input_email});
         const check_nickname = await Users.findOne({user_nickName: input_nickname});
         
+        if(check_id){
+          return res.status(400).json({errors: [{message: "이미 사용중인 아이디입니다ㅠㅠ"}]})
+        }
+
         if(check_email){
             return res.status(400).json({errors: [{message: "이미 가입된 이메일입니다ㅠㅠ"}]})
         }
@@ -165,6 +171,128 @@ app.post('/join',
 ///////여기까지_회원가입_end///////////
 ////////////////////////
 
+/**
+회원가입 중복확인에 아이디도 추가
+.body 는 req받은 data에만 사용?
+
+할것
+로그인 후/마이페이지 접속 시에 프론트에 json으로 접속회원 도큐먼트 날라가는지 확인하기
+세션, 쿠키 확인 하기
+마이페이지, 로그아웃 구현하기
+
+끄읕~
+로그인, 화원가입
+*/
+
+
+
+////////////////////////
+///////여기부터_로그인///////////
+////////////////////////
+
+//로그인 요청 -> front에서 입력한 비번 암호화 -> 비교후 boolean 값 리턴
+// -> true일때 토큰 생성 ->토큰을 세션및 DB에 저장
+
+//라이브러리 설정 -> 사용 middleware 작성 
+//npm install --legacy-peer-deps passport passport-local express-session
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const session = require('express-session');
+
+app.use(session({secret: '비밀코드', resave: true, saveUninitialized: false}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+//로그인 페이지 접속
+app.get('/login', (req,res)=>{
+  res.sendFile(__dirname + '/public/login.html');
+})
+
+//로그인 폼 전송 -> 아이디 비번 검사 명령(인증해주세요~)(local 방식으로 인증~)
+//passport.authenticate('local') -> 밑에있는 passport.use(new LocalStrategy~ 실행
+//응답해주기 전에 local 방식으로 아이디 비번을 인증해주세요~
+app.post('/login', passport.authenticate('local',{
+  
+  //로그인 실패시 'fail'경로로 보내줘
+  failureRedirect: '/fail'
+}) ,(req, res)=>{
+  
+  //로그인 성공시 '/'로 보내줭
+  res.redirect('/')
+  console.log("login_success: " + "아이디: " + req.user_id + " 비번: " + req.user_pw);
+})
+
+
+//로그인 실패시 실행할 api
+app.get('/fail', (req,res)=>{
+  
+  //여기에 로그인 실패시 실행할(띄어줄 .html) 작성
+  res.send('로그인 실패~');
+})
+
+
+//아이디 비번 인증하는 세부 코드
+passport.use(new LocalStrategy({
+    
+  // login.html에서 사용자가 제출한 아이디가 어떤 <input>인지 <input>의 name 속성값
+  usernameField: 'id',
+  passwordField: 'pw',
+  session: true,      //로그인 후 세션 저장
+  passReqToCallback: false,   
+}, (input_id, input_pw, done)=>{
+  console.log(input_id, input_pw);        
+  
+  //디비에 저장된 아이디 비번과 대조해보기
+  Users.findOne({user_id: input_id}, (err, result)=>{
+      //걍 에러다~~
+      //done(서버에러, 성공시 뱉어낼 사용자DB, 에러메세지)
+      if(err) return done(err)
+      
+      //result == null -> 일치하는 user_id가 없는거임
+      if(!result) return done(null, false, {message: '존재하지 않는 아이디입니다~ㅠㅠ'})
+      
+      //아이디 동일하니깐 이젠 비번 확인해야지 
+      //front에서 입력한 비번 암호 <-> 위에서 findOne으로 찾아낸 화원정보의 암호화 된 비밀번호(result.pw)와 비교
+      //비교하고 -> 
+      result.comparePassword(input_pw, result.user_pw, (err, isMatch) => {
+        //isMatch가 false이면~ -> 실패리턴
+        if(!isMatch) return done(null, false, {message: '비밀번호가 틀렸어요~ㅠㅠ'})
+        else{
+          console.log(result);
+          //어디에 보낸다는거지?
+          return done(null, result);
+        }
+      })
+  })
+}));
+
+
+//로그인 -> 세션 정보 만듦(로그인 유지)
+//유저의 정보를 저장(씨리얼라이즈 해서)
+//로그인 성공시 발동
+//사용자 정보 객체를 session에 아이디로 저장!
+passport.serializeUser((user, done)=>{
+    done(null, user.user_id);      //user.user_id로 세션을 만듦(쿠기로 보냄 ) -> 해당 세션으로 마이페이지 접근 가능
+  });
+ 
+
+//마이페이지 접속시 사용
+//session data 찾기
+//로그인 한 유저의 개인정보를 DB에서 찾는 역할
+//session에 저장한 아이디를 통해서 사용자 정보 객체를 불러옴
+passport.deserializeUser((id, done)=>{
+  //디비에서 위에 있는 user.id로 유저를 찾은 뒤에 유저 정보를 {}에 넣음 
+  //mypage 접속시 DB에서 {user_id: id}인 도큐먼트 하나 찾아서 그 결과 보내줌
+  Users.findOne({user_id: id}, (err, result)=>{
+    done(null, result);
+  });
+});
+
+
+
+////////////////////////
+///////여기까지_로그인_end///////////
+////////////////////////
 
 let roomIndex = 1;
 let rooms = []; //방정보들 저장
